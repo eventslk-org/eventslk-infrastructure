@@ -1,0 +1,10 @@
+; [all:vars]
+; ansible_ssh_common_args='-o StrictHostKeyChecking=no'
+; ansible_python_interpreter=/usr/bin/python3
+
+
+[master]
+master_node ansible_host=34.201.1.218 ansible_user=ubuntu
+
+[worker]
+worker_node ansible_host=98.80.196.30 ansible_user=ubuntu

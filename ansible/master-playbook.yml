@@ -1,0 +1,35 @@
+---
+- name: Setup Kubernetes Master
+  hosts: master
+  become: yes
+  tasks:
+    - name: Initialize Kubernetes cluster
+      shell: kubeadm init --pod-network-cidr=192.168.0.0/16
+      register: init_output
+      ignore_errors: yes
+
+    - name: Create .kube directory for ubuntu user
+      file:
+        path: /home/ubuntu/.kube
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Copy admin.conf to user kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /home/ubuntu/.kube/config
+        remote_src: yes
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Install Calico Network Plugin
+      become: false
+      shell: kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.27.0/manifests/calico.yaml
+
+    - name: Get join command
+      shell: kubeadm token create --print-join-command
+      register: join_command
+
+    - name: Save join command to a local file
+      local_action: copy content="{{ join_command.stdout }}" dest="./join-command.sh"

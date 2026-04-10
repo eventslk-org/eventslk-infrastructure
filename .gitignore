@@ -1,0 +1,58 @@
+# Terraform sensitive/local files
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraform/
+.terraform.lock.hcl
+
+# Environment and secret files
+.env
+.env.*
+*.secret
+*.secrets
+
+# Keys and certificates
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.pem
+*.ppk
+*.der
+*.cer
+*.csr
+
+# Ansible vault and credential files
+
+*.ini
+*.vault
+*.vault.yml
+*.vault.yaml
+.vault_pass
+vault_pass.txt
+
+# Ansible conventional secret locations
+ansible/group_vars/**/vault.yml
+ansible/group_vars/**/vault.yaml
+ansible/group_vars/**/secrets.yml
+ansible/group_vars/**/secrets.yaml
+ansible/host_vars/**/vault.yml
+ansible/host_vars/**/vault.yaml
+ansible/host_vars/**/secrets.yml
+ansible/host_vars/**/secrets.yaml
+ansible/**/.vault_pass
+ansible/**/vault_pass.txt
+ansible/**/id_rsa
+ansible/**/id_ed25519
+
+# Local credentials and tokens
+*.credentials
+*.token
+*.tokens

@@ -1,0 +1,13 @@
+---
+- name: Join Worker Node
+  hosts: worker
+  become: yes
+  tasks:
+    - name: Copy join command to worker
+      copy:
+        src: ./join-command.sh
+        dest: /tmp/join-command.sh
+        mode: '0777'
+
+    - name: Run join command
+      shell: sh /tmp/join-command.sh
