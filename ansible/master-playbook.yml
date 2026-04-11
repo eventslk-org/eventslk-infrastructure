@@ -3,12 +3,15 @@
   hosts: master
   become: yes
   tasks:
+    - name: Reset kubeadm if already initialized (Optional)
+      shell: kubeadm reset -f
+      ignore_errors: yes
+
     - name: Initialize Kubernetes cluster
       shell: kubeadm init --pod-network-cidr=192.168.0.0/16
       register: init_output
-      ignore_errors: yes
 
-    - name: Create .kube directory for ubuntu user
+    - name: Create .kube directory
       file:
         path: /home/ubuntu/.kube
         state: directory
@@ -31,5 +34,5 @@
       shell: kubeadm token create --print-join-command
       register: join_command
 
-    - name: Save join command to a local file
+    - name: Save join command locally
       local_action: copy content="{{ join_command.stdout }}" dest="./join-command.sh"
