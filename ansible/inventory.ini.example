@@ -1,10 +1,11 @@
 ; [all:vars]
 ; ansible_ssh_common_args='-o StrictHostKeyChecking=no'
 ; ansible_python_interpreter=/usr/bin/python3
+; ansible_ssh_private_key_file=~/.ssh/id_rsa
 
 
 [master]
-master_node ansible_host=34.201.1.218 ansible_user=ubuntu
+master_node ansible_host=<MASTER_PUBLIC_IP> ansible_user=ubuntu
 
 [worker]
-worker_node ansible_host=98.80.196.30 ansible_user=ubuntu
+worker_node ansible_host=<WORKER_PUBLIC_IP> ansible_user=ubuntu

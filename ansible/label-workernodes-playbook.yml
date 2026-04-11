@@ -1,0 +1,8 @@
+- name: Label Kubernetes Worker Nodes
+  hosts: master_node
+  tasks:
+    - name: Label Storage Node
+      shell: kubectl label node/ip-10-0-1-124 node-role=storage --overwrite
+
+    - name: Label Application Node
+      shell: kubectl label node/ip-10-0-1-174 node-role=application --overwrite

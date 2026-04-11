@@ -1,0 +1,40 @@
+# ---
+# - name: Install ArgoCD on Kubernetes Cluster
+#   hosts: master_node
+#   become: yes
+#   tasks:
+#     - name: Create argocd namespace
+#     # Setup a unique namespace for ArgoCD
+#       shell: kubectl create namespace argocd
+#       ignore_errors: yes
+
+#     - name: Download and Apply ArgoCD Manifests
+#     # Download and apply ArgoCD YAML files to the cluster
+#       shell: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+#     - name: Wait for ArgoCD pods to be ready
+#       shell: kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+
+
+---
+- name: Install ArgoCD on Kubernetes Cluster
+  hosts: master_node
+  become: yes
+  tasks:
+    - name: Create argocd namespace
+      shell: kubectl create namespace argocd
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf # Cluster config  location
+      ignore_errors: yes
+
+    - name: Download and Apply ArgoCD Manifests
+      # Use --server-side to avoid annotation size limit (>262144 bytes) on ArgoCD CRDs
+      # Use --force-conflicts to take ownership of resources created in any prior partial run
+      shell: kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+
+    - name: Wait for ArgoCD pods to be ready
+      shell: kubectl wait --for=condition=Ready pods --all -n argocd --timeout=300s
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf

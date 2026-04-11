@@ -59,6 +59,14 @@ resource "aws_security_group" "eventslk_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # ArgoCD UI 
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   ingress {
     from_port   = 30000
     to_port     = 32767
@@ -87,6 +95,7 @@ resource "aws_instance" "eventslk_master" {
 
 # 7. Compute: Worker Node
 resource "aws_instance" "eventslk_worker" {
+  count                  =2
   ami                    = var.ami_val
   instance_type          = var.worker_instance_type # Using variable
   subnet_id              = aws_subnet.eventslk_public_subnet.id # Dynamic link

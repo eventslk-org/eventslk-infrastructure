@@ -7,7 +7,12 @@
       copy:
         src: ./join-command.sh
         dest: /tmp/join-command.sh
-        mode: '0777'
+        mode: '0700'
 
     - name: Run join command
       shell: sh /tmp/join-command.sh
+
+    - name: Remove join command script
+      file:
+        path: /tmp/join-command.sh
+        state: absent
