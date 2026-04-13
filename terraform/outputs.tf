@@ -14,3 +14,14 @@ output "worker_public_ips" {
 output "master_instance_id" {
   value = aws_instance.eventslk_master.id
 }
+
+output "worker_instance_ids" {
+  value = aws_instance.eventslk_worker[*].id
+}
+
+output "new_public_ips" {
+  value = {
+    for id, eip in aws_eip.stopped_instance_ips : id => eip.public_ip
+  }
+}
+

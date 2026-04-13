@@ -7,7 +7,7 @@ provider "aws" {
 resource "aws_vpc" "eventslk_vpc" {
   cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
-  tags = { Name = "eventslk-vpc" }
+  tags                 = { Name = "eventslk-vpc" }
 }
 
 # 2. Network: Internet Gateway
@@ -85,9 +85,9 @@ resource "aws_security_group" "eventslk_sg" {
 # 6. Compute: Master Node
 resource "aws_instance" "eventslk_master" {
   ami                    = var.ami_val
-  instance_type          = var.master_instance_type # Using variable
+  instance_type          = var.master_instance_type             # Using variable
   subnet_id              = aws_subnet.eventslk_public_subnet.id # Dynamic link
-  vpc_security_group_ids = [aws_security_group.eventslk_sg.id] # Dynamic link
+  vpc_security_group_ids = [aws_security_group.eventslk_sg.id]  # Dynamic link
   key_name               = var.key_name_val
 
   tags = { Name = "eventslk-master" }
@@ -95,11 +95,11 @@ resource "aws_instance" "eventslk_master" {
 
 # 7. Compute: Worker Node
 resource "aws_instance" "eventslk_worker" {
-  count                  =2
+  count                  = 2
   ami                    = var.ami_val
-  instance_type          = var.worker_instance_type # Using variable
+  instance_type          = var.worker_instance_type             # Using variable
   subnet_id              = aws_subnet.eventslk_public_subnet.id # Dynamic link
-  vpc_security_group_ids = [aws_security_group.eventslk_sg.id] # Dynamic link
+  vpc_security_group_ids = [aws_security_group.eventslk_sg.id]  # Dynamic link
   key_name               = var.key_name_val
 
   tags = { Name = "eventslk-worker" }

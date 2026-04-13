@@ -37,3 +37,15 @@ variable "security_groups_val" {
   description = "List of security group IDs"
   type        = list(string)
 }
+
+variable "instance_state" {
+  description = "The desired state for EC2 instances (running or stopped)"
+  type        = string
+  default     = "stopped"
+}
+
+variable "target_instance_ids" {
+  description = "List of EC2 instance IDs to attach Elastic IPs to"
+  type        = list(string)
+}
+
