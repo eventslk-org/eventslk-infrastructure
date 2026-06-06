@@ -7,6 +7,16 @@ resource "aws_instance" "master" {
   vpc_security_group_ids = [aws_security_group.main.id]
   key_name               = var.key_name_val
   tags                   = { Name = "eventslk-master" }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  root_block_device {
+    encrypted = true
+  }
 }
 
 # ── Worker Nodes ─────────────────────────────────────────────
@@ -19,6 +29,16 @@ resource "aws_instance" "worker" {
   vpc_security_group_ids = [aws_security_group.main.id]
   key_name               = var.key_name_val
   tags                   = { Name = "eventslk-worker-${count.index}" }
+
+  metadata_options {
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
+    http_put_response_hop_limit = 1
+  }
+
+  root_block_device {
+    encrypted = true
+  }
 }
 
 # ── Elastic IPs (stable IPs that survive stop/start) ────────

@@ -1,0 +1,7 @@
+# SSH ingress from 0.0.0.0/0 — intentional; cluster management requires SSH
+# and access is gated by EC2 key-pair authentication.
+AVD-AWS-0107
+
+# Subnet map_public_ip_on_launch — intentional; instances need internet access
+# during the provisioning window before their Elastic IP is associated.
+AVD-AWS-0164
