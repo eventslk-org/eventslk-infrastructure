@@ -56,3 +56,6 @@ ansible/**/id_ed25519
 *.credentials
 *.token
 *.tokens
+
+*.sh
+
