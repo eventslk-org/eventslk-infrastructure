@@ -1,0 +1,187 @@
+name: Terraform CI/CD with Trivy IaC Scans
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  # ──────────────────────────────────────────────────────────────
+  # Job 1: Aqua Security Trivy — IaC Policy-as-Code scan
+  # Fails the pipeline on any HIGH or CRITICAL finding.
+  # ──────────────────────────────────────────────────────────────
+  trivy-scan:
+    name: IaC vulnerability scan (Trivy)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Trivy IaC scan
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: "config"
+          scan-ref: "terraform"   # scope scan to Terraform files only
+          format: "table"
+          output: "trivy-results.txt"
+          severity: "CRITICAL,HIGH"
+          exit-code: "1"          # non-zero exit on findings → fail pipeline
+          hide-progress: true
+
+      - name: Upload Trivy results
+        if: always()              # upload even when the scan finds issues
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-results
+          path: trivy-results.txt
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 2: GitGuardian ggshield — secret / credential leak scan
+  # Runs in parallel with trivy-scan; scans every commit in the push/PR.
+  # Requires GITGUARDIAN_API_KEY secret (free tier available at dashboard.gitguardian.com).
+  # ──────────────────────────────────────────────────────────────
+  secret-scan:
+    name: Secret leak detection (GitGuardian)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history required — ggshield scans every commit in the diff
+
+      - name: GitGuardian ggshield scan
+        uses: gitguardian/ggshield-action@v1
+        env:
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 3: Terraform Plan (runs only after BOTH scans pass)
+  # ──────────────────────────────────────────────────────────────
+  terraform-plan:
+    name: Terraform Plan
+    runs-on: ubuntu-24.04
+    needs: [trivy-scan, secret-scan]
+    defaults:
+      run:
+        working-directory: terraform   # repo root IS the infrastructure dir
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~1.9"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # terraform.tfvars is gitignored; reconstruct it from GitHub secrets/vars.
+      # Non-sensitive infra values (AMI, instance types, IDs) → Actions Variables.
+      # Credentials and state-backend identifiers → Actions Secrets.
+      - name: Generate terraform.tfvars
+        run: |
+          cat > terraform.tfvars <<EOF
+          aws_region           = "${{ secrets.AWS_REGION }}"
+          ami_val              = "${{ vars.AMI_VAL }}"
+          key_name_val         = "${{ vars.KEY_NAME_VAL }}"
+          master_instance_type = "${{ vars.MASTER_INSTANCE_TYPE }}"
+          worker_instance_type = "${{ vars.WORKER_INSTANCE_TYPE }}"
+          subnet_id_val        = "${{ vars.SUBNET_ID_VAL }}"
+          security_groups_val  = ${{ vars.SECURITY_GROUPS_VAL }}
+          target_instance_ids  = ${{ vars.TARGET_INSTANCE_IDS }}
+          instance_state       = "stopped"
+          EOF
+
+      - name: Terraform init
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ secrets.TFSTATE_BUCKET }}" \
+            -backend-config="key=${{ secrets.TFSTATE_KEY }}" \
+            -backend-config="region=${{ secrets.AWS_REGION }}" \
+            -backend-config="dynamodb_table=${{ secrets.TFSTATE_DYNAMODB_TABLE }}"
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -diff
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+      - name: Terraform plan
+        run: terraform plan -out=tfplan -input=false
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: terraform/tfplan
+
+  # ──────────────────────────────────────────────────────────────
+  # Job 3: Terraform Apply — COMMENTED OUT for now.
+  # Uncomment when you are ready to provision infrastructure.
+  # ──────────────────────────────────────────────────────────────
+
+  # terraform-apply:
+  #   name: Terraform Apply (main branch only)
+  #   runs-on: ubuntu-24.04
+  #   needs: terraform-plan
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   defaults:
+  #     run:
+  #       working-directory: terraform
+  #   steps:
+  #     - name: Checkout
+  #       uses: actions/checkout@v4
+  #
+  #     - name: Setup Terraform
+  #       uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: "~1.9"
+  #
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: ${{ secrets.AWS_REGION }}
+  #
+  #     - name: Generate terraform.tfvars
+  #       run: |
+  #         cat > terraform.tfvars <<EOF
+  #         aws_region           = "${{ secrets.AWS_REGION }}"
+  #         ami_val              = "${{ vars.AMI_VAL }}"
+  #         key_name_val         = "${{ vars.KEY_NAME_VAL }}"
+  #         master_instance_type = "${{ vars.MASTER_INSTANCE_TYPE }}"
+  #         worker_instance_type = "${{ vars.WORKER_INSTANCE_TYPE }}"
+  #         subnet_id_val        = "${{ vars.SUBNET_ID_VAL }}"
+  #         security_groups_val  = ${{ vars.SECURITY_GROUPS_VAL }}
+  #         target_instance_ids  = ${{ vars.TARGET_INSTANCE_IDS }}
+  #         instance_state       = "stopped"
+  #         EOF
+  #
+  #     - name: Download plan artifact
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: tfplan
+  #         path: terraform
+  #
+  #     - name: Terraform init
+  #       run: |
+  #         terraform init -input=false \
+  #           -backend-config="bucket=${{ secrets.TFSTATE_BUCKET }}" \
+  #           -backend-config="key=${{ secrets.TFSTATE_KEY }}" \
+  #           -backend-config="region=${{ secrets.AWS_REGION }}" \
+  #           -backend-config="dynamodb_table=${{ secrets.TFSTATE_DYNAMODB_TABLE }}"
+  #
+  #     - name: Terraform apply
+  #       run: terraform apply -input=false -auto-approve tfplan
