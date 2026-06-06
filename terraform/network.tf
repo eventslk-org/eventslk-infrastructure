@@ -18,7 +18,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = true
+  map_public_ip_on_launch = false
   availability_zone       = "${var.aws_region}a"
   tags                    = { Name = "eventslk-public-subnet" }
 }
@@ -56,12 +56,12 @@ resource "aws_security_group" "main" {
     self      = true
   }
 
-  # SSH
+  # SSH — restricted to operator-supplied CIDR blocks
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.ssh_cidr_blocks
   }
 
   # ArgoCD UI
@@ -80,12 +80,8 @@ resource "aws_security_group" "main" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  # No explicit egress block — AWS implicit allow-all outbound applies.
+  # K8s nodes need unrestricted outbound for image pulls and OS updates.
 
   tags = { Name = "eventslk-sg" }
 }

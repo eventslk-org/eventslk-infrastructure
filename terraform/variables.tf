@@ -37,3 +37,8 @@ variable "instance_state" {
   type        = string
   default     = "stopped"
 }
+
+variable "ssh_cidr_blocks" {
+  description = "CIDR blocks allowed to SSH into cluster nodes (e.g. your office or VPN egress IP)"
+  type        = list(string)
+}

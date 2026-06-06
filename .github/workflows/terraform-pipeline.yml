@@ -92,8 +92,9 @@ jobs:
       - name: Generate terraform.tfvars
         run: |
           cat > terraform.tfvars <<EOF
-          ami_val      = "${{ vars.AMI_VAL }}"
-          key_name_val = "${{ vars.KEY_NAME_VAL }}"
+          ami_val         = "${{ vars.AMI_VAL }}"
+          key_name_val    = "${{ vars.KEY_NAME_VAL }}"
+          ssh_cidr_blocks = ${{ vars.SSH_CIDR_BLOCKS }}
           EOF
 
       - name: Terraform init
@@ -151,8 +152,9 @@ jobs:
   #     - name: Generate terraform.tfvars
   #       run: |
   #         cat > terraform.tfvars <<EOF
-  #         ami_val      = "${{ vars.AMI_VAL }}"
-  #         key_name_val = "${{ vars.KEY_NAME_VAL }}"
+  #         ami_val         = "${{ vars.AMI_VAL }}"
+  #         key_name_val    = "${{ vars.KEY_NAME_VAL }}"
+  #         ssh_cidr_blocks = ${{ vars.SSH_CIDR_BLOCKS }}
   #         EOF
   #
   #     - name: Download plan artifact
