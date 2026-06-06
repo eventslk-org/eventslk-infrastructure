@@ -1,5 +1,3 @@
-# Description: Defines the variables required for EventsLK infrastructure
-
 variable "aws_region" {
   description = "Target AWS region"
   type        = string
@@ -7,45 +5,35 @@ variable "aws_region" {
 }
 
 variable "ami_val" {
-  description = "AMI ID for Ubuntu 22.04 LTS"
-  type        = string
-}
-
-variable "master_instance_type" {
-  description = "Instance type for the Master node"
-  type        = string
-  default     = "t3.medium" # Recommended for K8s Master
-}
-
-variable "worker_instance_type" {
-  description = "Instance type for the Worker node"
-  type        = string
-  default     = "t3.small"
-}
-
-variable "subnet_id_val" {
-  description = "Subnet ID to launch instances"
+  description = "AMI ID (e.g. Ubuntu 22.04 LTS in us-east-1)"
   type        = string
 }
 
 variable "key_name_val" {
-  description = "SSH Key pair name"
+  description = "Name of the AWS EC2 key pair for SSH access"
   type        = string
 }
 
-variable "security_groups_val" {
-  description = "List of security group IDs"
-  type        = list(string)
+variable "master_instance_type" {
+  description = "Instance type for the K8s master node"
+  type        = string
+  default     = "t3.medium"
+}
+
+variable "worker_instance_type" {
+  description = "Instance type for K8s worker nodes"
+  type        = string
+  default     = "t3.small"
+}
+
+variable "worker_count" {
+  description = "Number of worker nodes"
+  type        = number
+  default     = 2
 }
 
 variable "instance_state" {
-  description = "The desired state for EC2 instances (running or stopped)"
+  description = "Desired EC2 state: running or stopped"
   type        = string
   default     = "stopped"
 }
-
-variable "target_instance_ids" {
-  description = "List of EC2 instance IDs to attach Elastic IPs to"
-  type        = list(string)
-}
-

@@ -1,20 +1,25 @@
-// Terraform remote backend — S3 state storage with DynamoDB locking.
-// Bucket, region, and DynamoDB table are supplied at init time via
-// -backend-config flags (see CI workflow). The key is static per workspace.
+# Remote backend — values injected via -backend-config in CI.
+# The placeholder values below are overridden at init time.
 
 terraform {
+  required_version = ">= 1.9"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+
   backend "s3" {
-    bucket         = "your-terraform-state-bucket"
+    bucket         = "eventslk-tf-state"
     key            = "eventslk/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "your-terraform-locks"
+    dynamodb_table = "eventslk-tf-locks"
     encrypt        = true
   }
 }
 
-/* Migration guide (one-time, run locally):
-   terraform init -migrate-state \
-     -backend-config="bucket=YOUR_BUCKET" \
-     -backend-config="region=us-east-1" \
-     -backend-config="dynamodb_table=YOUR_LOCK_TABLE"
-*/
+provider "aws" {
+  region = var.aws_region
+}

@@ -1,27 +1,37 @@
-# Output for the Master Node
-output "master_public_ip" {
-  description = "Public IP of the Master Node"
-  value       = aws_instance.eventslk_master.public_ip
+# ── Elastic IPs (use these for SSH / Ansible inventory) ─────
+
+output "master_elastic_ip" {
+  description = "Stable Elastic IP of the master node"
+  value       = aws_eip.master.public_ip
 }
 
-# Output for all Worker Nodes
-output "worker_public_ips" {
-  description = "Public IPs of the Worker Nodes"
-  value       = aws_instance.eventslk_worker[*].public_ip
+output "worker_elastic_ips" {
+  description = "Stable Elastic IPs of the worker nodes"
+  value       = aws_eip.worker[*].public_ip
 }
 
-# Optional: Get IDs if you need them for CLI commands
+# ── Instance IDs ─────────────────────────────────────────────
+
 output "master_instance_id" {
-  value = aws_instance.eventslk_master.id
+  description = "Instance ID of the master node"
+  value       = aws_instance.master.id
 }
 
 output "worker_instance_ids" {
-  value = aws_instance.eventslk_worker[*].id
+  description = "Instance IDs of the worker nodes"
+  value       = aws_instance.worker[*].id
 }
 
-output "new_public_ips" {
-  value = {
-    for id, eip in aws_eip.stopped_instance_ips : id => eip.public_ip
-  }
+# ── Network IDs (useful for debugging) ───────────────────────
+
+output "vpc_id" {
+  value = aws_vpc.main.id
 }
 
+output "subnet_id" {
+  value = aws_subnet.public.id
+}
+
+output "security_group_id" {
+  value = aws_security_group.main.id
+}

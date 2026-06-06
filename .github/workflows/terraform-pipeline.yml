@@ -92,15 +92,8 @@ jobs:
       - name: Generate terraform.tfvars
         run: |
           cat > terraform.tfvars <<EOF
-          aws_region           = "${{ secrets.AWS_REGION }}"
-          ami_val              = "${{ vars.AMI_VAL }}"
-          key_name_val         = "${{ vars.KEY_NAME_VAL }}"
-          master_instance_type = "${{ vars.MASTER_INSTANCE_TYPE }}"
-          worker_instance_type = "${{ vars.WORKER_INSTANCE_TYPE }}"
-          subnet_id_val        = "${{ vars.SUBNET_ID_VAL }}"
-          security_groups_val  = ${{ vars.SECURITY_GROUPS_VAL }}
-          target_instance_ids  = ${{ vars.TARGET_INSTANCE_IDS }}
-          instance_state       = "stopped"
+          ami_val      = "${{ vars.AMI_VAL }}"
+          key_name_val = "${{ vars.KEY_NAME_VAL }}"
           EOF
 
       - name: Terraform init
@@ -158,15 +151,8 @@ jobs:
   #     - name: Generate terraform.tfvars
   #       run: |
   #         cat > terraform.tfvars <<EOF
-  #         aws_region           = "${{ secrets.AWS_REGION }}"
-  #         ami_val              = "${{ vars.AMI_VAL }}"
-  #         key_name_val         = "${{ vars.KEY_NAME_VAL }}"
-  #         master_instance_type = "${{ vars.MASTER_INSTANCE_TYPE }}"
-  #         worker_instance_type = "${{ vars.WORKER_INSTANCE_TYPE }}"
-  #         subnet_id_val        = "${{ vars.SUBNET_ID_VAL }}"
-  #         security_groups_val  = ${{ vars.SECURITY_GROUPS_VAL }}
-  #         target_instance_ids  = ${{ vars.TARGET_INSTANCE_IDS }}
-  #         instance_state       = "stopped"
+  #         ami_val      = "${{ vars.AMI_VAL }}"
+  #         key_name_val = "${{ vars.KEY_NAME_VAL }}"
   #         EOF
   #
   #     - name: Download plan artifact
@@ -185,3 +171,12 @@ jobs:
   #
   #     - name: Terraform apply
   #       run: terraform apply -input=false -auto-approve tfplan
+  #
+  #     - name: Show Terraform outputs
+  #       run: terraform output -json > tf-outputs.json
+  #
+  #     - name: Upload outputs
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: terraform-outputs
+  #         path: terraform/tf-outputs.json
