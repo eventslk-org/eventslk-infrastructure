@@ -59,3 +59,5 @@ ansible/**/id_ed25519
 
 *.sh
 
+docs/
+
