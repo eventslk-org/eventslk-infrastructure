@@ -61,3 +61,5 @@ ansible/**/id_ed25519
 
 docs/
 
+*.example
+.claude
