@@ -25,13 +25,21 @@ output "worker_instance_ids" {
 # ── Network IDs (useful for debugging) ───────────────────────
 
 output "vpc_id" {
-  value = aws_vpc.main.id
+  description = "VPC ID hosting the cluster."
+  value       = aws_vpc.main.id
 }
 
 output "subnet_id" {
-  value = aws_subnet.public.id
+  description = "Public subnet ID where cluster nodes live."
+  value       = aws_subnet.public.id
 }
 
 output "security_group_id" {
-  value = aws_security_group.main.id
+  description = "Security group ID applied to all cluster nodes."
+  value       = aws_security_group.main.id
+}
+
+output "ami_id" {
+  description = "AMI ID actually used for cluster nodes."
+  value       = local.resolved_ami
 }

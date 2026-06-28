@@ -1,7 +1,28 @@
+# ── AMI lookup (Canonical Ubuntu 22.04 LTS, amd64) ───────────
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+locals {
+  resolved_ami = var.ami_val != "" ? var.ami_val : data.aws_ami.ubuntu.id
+}
+
 # ── Master Node ──────────────────────────────────────────────
 
 resource "aws_instance" "master" {
-  ami                    = var.ami_val
+  ami                    = local.resolved_ami
   instance_type          = var.master_instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.main.id]
@@ -11,11 +32,13 @@ resource "aws_instance" "master" {
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = 2
   }
 
   root_block_device {
-    encrypted = true
+    encrypted   = true
+    volume_size = var.root_volume_size
+    volume_type = "gp3"
   }
 }
 
@@ -23,7 +46,7 @@ resource "aws_instance" "master" {
 
 resource "aws_instance" "worker" {
   count                  = var.worker_count
-  ami                    = var.ami_val
+  ami                    = local.resolved_ami
   instance_type          = var.worker_instance_type
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.main.id]
@@ -33,11 +56,13 @@ resource "aws_instance" "worker" {
   metadata_options {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
-    http_put_response_hop_limit = 1
+    http_put_response_hop_limit = 2
   }
 
   root_block_device {
-    encrypted = true
+    encrypted   = true
+    volume_size = var.root_volume_size
+    volume_type = "gp3"
   }
 }
 

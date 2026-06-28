@@ -18,7 +18,7 @@ resource "aws_internet_gateway" "main" {
 resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.1.0/24"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
   availability_zone       = "${var.aws_region}a"
   tags                    = { Name = "eventslk-public-subnet" }
 }
@@ -64,15 +64,23 @@ resource "aws_security_group" "main" {
     cidr_blocks = var.ssh_cidr_blocks
   }
 
-  # ArgoCD UI
+  # Kubernetes API server — operator access only
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = var.ssh_cidr_blocks
+  }
+
+  # ArgoCD UI — restricted to operator CIDRs until TLS/ingress is in place
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = var.ssh_cidr_blocks
   }
 
-  # Kubernetes NodePort range
+  # Kubernetes NodePort range — public so user-facing Services are reachable
   ingress {
     from_port   = 30000
     to_port     = 32767
@@ -80,6 +88,7 @@ resource "aws_security_group" "main" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  
   # No explicit egress block — AWS implicit allow-all outbound applies.
   # K8s nodes need unrestricted outbound for image pulls and OS updates.
 

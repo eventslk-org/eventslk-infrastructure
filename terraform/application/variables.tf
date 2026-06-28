@@ -5,8 +5,15 @@ variable "aws_region" {
 }
 
 variable "ami_val" {
-  description = "AMI ID (e.g. Ubuntu 22.04 LTS in us-east-1)"
+  description = "Optional AMI override. Leave empty to auto-resolve the latest Canonical Ubuntu 22.04 LTS AMI for the selected region."
   type        = string
+  default     = ""
+}
+
+variable "root_volume_size" {
+  description = "Root EBS volume size (GiB) for each cluster node."
+  type        = number
+  default     = 30
 }
 
 variable "key_name_val" {
@@ -23,7 +30,7 @@ variable "master_instance_type" {
 variable "worker_instance_type" {
   description = "Instance type for K8s worker nodes"
   type        = string
-  default     = "t3.small"
+  default     = "t3.medium"
 }
 
 variable "worker_count" {
