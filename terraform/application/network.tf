@@ -88,8 +88,13 @@ resource "aws_security_group" "main" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  
-  # No explicit egress block — AWS implicit allow-all outbound applies.
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # "-1" means all protocols
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Added explicit egress block — AWS does not allow implicit outbound rules in terraform.
   # K8s nodes need unrestricted outbound for image pulls and OS updates.
 
   tags = { Name = "eventslk-sg" }
