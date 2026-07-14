@@ -43,3 +43,20 @@ output "ami_id" {
   description = "AMI ID actually used for cluster nodes."
   value       = local.resolved_ami
 }
+
+# ── Event-images S3 (wire into event-api-deployment.yaml) ────
+
+output "event_images_bucket" {
+  description = "S3 bucket for event images — set as AWS_S3_BUCKET."
+  value       = aws_s3_bucket.event_images.bucket
+}
+
+output "event_images_public_base_url" {
+  description = "Public base URL of event images — set as AWS_S3_PUBLIC_BASE_URL (or leave the app default; swap for a CloudFront domain later)."
+  value       = "https://${aws_s3_bucket.event_images.bucket_regional_domain_name}"
+}
+
+output "worker_iam_role_arn" {
+  description = "Worker-node IAM role assumed by pods via IMDS for S3 uploads."
+  value       = aws_iam_role.worker.arn
+}

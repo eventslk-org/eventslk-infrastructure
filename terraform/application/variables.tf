@@ -49,3 +49,9 @@ variable "ssh_cidr_blocks" {
   description = "CIDR blocks allowed to SSH into cluster nodes (e.g. your office or VPN egress IP)"
   type        = list(string)
 }
+
+variable "image_upload_cors_origins" {
+  description = "Browser origins allowed to PUT event images to the S3 bucket (the admin portal URL, e.g. https://admin.eventslk.com or http://<public-ip>:30082). Restrict this — presigned URLs limit WHAT can be written, this limits WHO can use them from a browser."
+  type        = list(string)
+  default     = ["*"] # tighten to the admin portal origin once it has a stable address
+}

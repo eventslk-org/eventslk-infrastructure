@@ -51,6 +51,9 @@ resource "aws_instance" "worker" {
   subnet_id              = aws_subnet.public.id
   vpc_security_group_ids = [aws_security_group.main.id]
   key_name               = var.key_name_val
+  # Grants pods S3 access for presigned image uploads (see s3.tf);
+  # reachable from pods because the IMDS hop limit below is 2.
+  iam_instance_profile   = aws_iam_instance_profile.worker.name
   tags                   = { Name = "eventslk-worker-${count.index}" }
 
   metadata_options {
